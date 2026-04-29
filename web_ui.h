@@ -439,6 +439,37 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             noise.stop(now + 0.5);
         }
 
+        function tocarSireneAlerta() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const duration = 2.4; // Tempo das 30 piscadas do LED
+            
+            const osc = audioCtx.createOscillator();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(400, now);
+            
+            const lfo = audioCtx.createOscillator();
+            lfo.type = 'sine';
+            lfo.frequency.setValueAtTime(4, now); // Wee-woo rápido
+            
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.setValueAtTime(200, now); // Variação de +/- 200Hz
+            
+            const mainGain = audioCtx.createGain();
+            mainGain.gain.setValueAtTime(0.5, now);
+            mainGain.gain.exponentialRampToValueAtTime(0.01, now + duration);
+            
+            lfo.connect(lfoGain);
+            lfoGain.connect(osc.frequency);
+            osc.connect(mainGain);
+            mainGain.connect(audioCtx.destination);
+            
+            lfo.start(now);
+            osc.start(now);
+            lfo.stop(now + duration);
+            osc.stop(now + duration);
+        }
+
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(`screen-${screenId}`).classList.add('active');
@@ -503,6 +534,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
                             statusText.innerText = "Game Over!";
                             card.classList.add('shaking');
                             tocarSomExplosao();
+                            tocarSireneAlerta();
                             setTimeout(() => card.classList.remove('shaking'), 500);
                             
                             salvarNoRanking(playerName, currentLevel, "Perdeu");
