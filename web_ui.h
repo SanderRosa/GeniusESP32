@@ -7,248 +7,561 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genius Memory - ESP32</title>
+    <title>Genius ESP32 - Premium Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.1);
-            --primary: #38bdf8;
+            --bg-dark: #090e1a;
+            --bg-card: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
             --danger: #ef4444;
-            --success: #22c55e;
-            --text: #f8fafc;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            /* Cores dos Botões Genius */
+            --color-1: #ef4444;
+            --color-2: #3b82f6;
+            --color-3: #10b981;
+            --color-4: #f59e0b;
+            --color-5: #8b5cf6;
+            --color-6: #ec4899;
+            --color-7: #06b6d4;
+            --color-8: #f97316;
+            --color-9: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #1e293b, #0f172a);
-            color: var(--text);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; margin: 0; overflow: hidden;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #090e1a 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
         }
 
+        /* Animações */
         @keyframes shake {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
         }
 
-        .shaking { animation: shake 0.2s infinite; }
-
-        .container {
-            background: var(--glass); backdrop-filter: blur(12px);
-            padding: 2.5rem; border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.1);
-            text-align: center; max-width: 400px; width: 90%; z-index: 10;
+        .shaking {
+            animation: shake 0.4s ease-in-out;
         }
 
-        h1 { font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px; }
-        .status { font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary); font-weight: 600; min-height: 1.5em; }
+        /* Container Principal */
+        .game-wrapper {
+            width: 100%;
+            max-width: 450px;
+            perspective: 1000px;
+        }
 
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        h1 {
+            font-weight: 900;
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.05em;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        /* Telas */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Formulário Inicial */
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        /* Botões */
+        .btn-action {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-action:active {
+            transform: translateY(0);
+        }
+
+        /* Grid do Jogo */
         .grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin: 2rem 0;
         }
 
-        .btn {
-            aspect-ratio: 1; background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.1); border-radius: 16px;
-            color: var(--text); font-size: 1.5rem; font-weight: bold;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center;
+        .genius-btn {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
-        .btn:active { background: var(--primary); transform: scale(0.95); }
+        #btn-1 { background: rgba(239, 68, 68, 0.2); border: 2px solid rgba(239, 68, 68, 0.4); color: #f87171; }
+        #btn-2 { background: rgba(59, 130, 246, 0.2); border: 2px solid rgba(59, 130, 246, 0.4); color: #60a5fa; }
+        #btn-3 { background: rgba(16, 185, 129, 0.2); border: 2px solid rgba(16, 185, 129, 0.4); color: #34d399; }
+        #btn-4 { background: rgba(245, 158, 11, 0.2); border: 2px solid rgba(245, 158, 11, 0.4); color: #fbbf24; }
+        #btn-5 { background: rgba(139, 92, 246, 0.2); border: 2px solid rgba(139, 92, 246, 0.4); color: #a78bfa; }
+        #btn-6 { background: rgba(236, 72, 153, 0.2); border: 2px solid rgba(236, 72, 153, 0.4); color: #f472b6; }
+        #btn-7 { background: rgba(6, 182, 212, 0.2); border: 2px solid rgba(6, 182, 212, 0.4); color: #22d3ee; }
+        #btn-8 { background: rgba(249, 115, 22, 0.2); border: 2px solid rgba(249, 115, 22, 0.4); color: #fb923c; }
+        #btn-9 { background: rgba(248, 250, 252, 0.2); border: 2px solid rgba(248, 250, 252, 0.4); color: #cbd5e1; }
 
-        .input-display {
-            background: rgba(0,0,0,0.2);
-            padding: 10px; border-radius: 12px;
-            margin-bottom: 1rem; min-height: 2.5rem;
-            display: flex; align-items: center; justify-content: center;
-            gap: 8px; font-size: 1.2rem; font-weight: 800;
-            border: 1px dashed rgba(255,255,255,0.2);
+        .genius-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
         }
 
-        .input-digit {
-            background: var(--primary); color: #0f172a;
-            width: 30px; height: 30px; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
+        .genius-btn:active {
+            transform: scale(0.95);
         }
 
-        .controls { margin-top: 1rem; display: flex; flex-direction: column; gap: 10px; }
-        .main-btn {
-            background: var(--primary); color: #0f172a; border: none;
-            padding: 14px 32px; border-radius: 12px; font-weight: 700;
-            cursor: pointer; transition: all 0.2s; width: 100%;
+        .genius-btn.active {
+            transform: scale(1.1);
+            filter: brightness(1.5);
+            box-shadow: 0 0 30px var(--btn-color, #fff);
+            border-color: white;
+            z-index: 10;
         }
 
-        #nextBtn { background: var(--success); display: none; }
-
-        .level-badge {
-            background: rgba(56, 189, 248, 0.2); padding: 6px 16px;
-            border-radius: 20px; font-size: 1rem; margin-bottom: 1rem;
-            display: inline-block; font-weight: 800;
+        /* Status */
+        .game-status {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--primary);
+            min-height: 3rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        #overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(239, 68, 68, 0.4); display: none;
-            flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; backdrop-filter: blur(8px);
+        /* Ranking */
+        .ranking-container {
+            margin-top: 2rem;
+            text-align: left;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
         }
 
-        #overlay h2 { color: white; font-size: 3rem; margin: 0; }
-        
-        .particle { position: absolute; width: 8px; height: 8px; border-radius: 50%; pointer-events: none; z-index: 99; }
-        @keyframes explode { to { transform: translate(var(--x), var(--y)); opacity: 0; } }
+        .ranking-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ranking-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-name {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .ranking-score {
+            font-weight: 700;
+            color: var(--warning);
+        }
+
+        .ranking-date {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* Tela de Derrota */
+        .game-over-title {
+            color: var(--danger);
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--warning);
+            margin: 1rem 0;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
     </style>
 </head>
-<body id="body">
+<body>
 
-    <div class="container" id="gameContainer">
-        <h1>Genius Memory</h1>
-        <div class="level-badge">SEQUÊNCIA: <span id="level">1</span> dígitos</div>
-        
-        <div id="status" class="status">Pressione Iniciar</div>
-        
-        <div class="input-display" id="inputDisplay">
-            <!-- Digitos aparecerão aqui temporariamente -->
+    <div class="game-wrapper">
+        <div class="card" id="mainCard">
+            
+            <!-- TELA INICIAL -->
+            <div id="screen-start" class="screen active">
+                <h1>Genius ESP32</h1>
+                <p>Teste sua memória nesta versão premium.</p>
+                
+                <div class="input-group">
+                    <label for="playerName">Seu Nome</label>
+                    <input type="text" id="playerName" placeholder="Digite seu nome ou apelido" value="Jogador">
+                </div>
+                
+                <button class="btn-action" onclick="iniciarJogo()">INICIAR JOGO</button>
+                
+                <div class="ranking-container">
+                    <div class="ranking-title">
+                        🏆 Ranking Local
+                    </div>
+                    <ul class="ranking-list" id="rankingList">
+                        <!-- Itens do ranking serão inseridos aqui -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- TELA DE JOGO -->
+            <div id="screen-game" class="screen">
+                <h1>Genius ESP32</h1>
+                <div class="game-status" id="gameStatus">Observe o NOVO número na placa...</div>
+                
+                <div class="grid">
+                    <button class="genius-btn" id="btn-1" style="--btn-color: var(--color-1)" onclick="enviarJogada(1)">1</button>
+                    <button class="genius-btn" id="btn-2" style="--btn-color: var(--color-2)" onclick="enviarJogada(2)">2</button>
+                    <button class="genius-btn" id="btn-3" style="--btn-color: var(--color-3)" onclick="enviarJogada(3)">3</button>
+                    <button class="genius-btn" id="btn-4" style="--btn-color: var(--color-4)" onclick="enviarJogada(4)">4</button>
+                    <button class="genius-btn" id="btn-5" style="--btn-color: var(--color-5)" onclick="enviarJogada(5)">5</button>
+                    <button class="genius-btn" id="btn-6" style="--btn-color: var(--color-6)" onclick="enviarJogada(6)">6</button>
+                    <button class="genius-btn" id="btn-7" style="--btn-color: var(--color-7)" onclick="enviarJogada(7)">7</button>
+                    <button class="genius-btn" id="btn-8" style="--btn-color: var(--color-8)" onclick="enviarJogada(8)">8</button>
+                    <button class="genius-btn" id="btn-9" style="--btn-color: var(--color-9)" onclick="enviarJogada(9)">9</button>
+                </div>
+
+                <button class="btn-action" id="btnProximaRodada" style="display: none; background: linear-gradient(135deg, var(--success), #059669);" onclick="proximaRodada()">PRÓXIMA RODADA</button>
+            </div>
+
+            <!-- TELA DE DERROTA -->
+            <div id="screen-gameover" class="screen">
+                <div class="game-over-title">FIM DE JOGO</div>
+                <div class="score-label">Rodada Alcançada</div>
+                <div class="score-display" id="finalScore">0</div>
+                <p id="gameOverMessage">Você esqueceu a sequência!</p>
+                
+                <button class="btn-action" onclick="voltarParaInicio()">JOGAR NOVAMENTE</button>
+            </div>
+
         </div>
-
-        <div class="grid">
-            <button class="btn" onclick="sendMove(1)">1</button>
-            <button class="btn" onclick="sendMove(2)">2</button>
-            <button class="btn" onclick="sendMove(3)">3</button>
-            <button class="btn" onclick="sendMove(4)">4</button>
-            <button class="btn" onclick="sendMove(5)">5</button>
-            <button class="btn" onclick="sendMove(6)">6</button>
-            <button class="btn" onclick="sendMove(7)">7</button>
-            <button class="btn" onclick="sendMove(8)">8</button>
-            <button class="btn" onclick="sendMove(9)">9</button>
-        </div>
-
-        <div class="controls">
-            <button class="main-btn" id="nextBtn" onclick="nextRound()">PRÓXIMA RODADA</button>
-            <button class="main-btn" id="startBtn" onclick="startGame()">INICIAR JOGO</button>
-        </div>
-    </div>
-
-    <div id="overlay">
-        <h2>GAME OVER</h2>
-        <p style="font-weight: bold; margin: 15px 0;">Você esqueceu a sequência!</p>
-        <button class="main-btn" style="width: auto; background: white; color: var(--danger);" onclick="closeOverlay()">RECOMEÇAR</button>
     </div>
 
     <script>
-        let isWaiting = false;
+        let isWaitingInput = false;
         let isGameOver = false;
-        let currentInput = [];
+        let currentLevel = 0;
+        let playerName = "Jogador";
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function createExplosionSound() {
+        document.addEventListener("DOMContentLoaded", () => {
+            carregarRanking();
+        });
+
+        // REQUISITO 1: Som de derrota (explosão forte)
+        function tocarSomExplosao() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const now = audioCtx.currentTime;
+            
+            // 1. Sintetizador de impacto (Grave)
+            const osc = audioCtx.createOscillator();
+            const gainOsc = audioCtx.createGain();
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(10, now + 0.4);
+            
+            gainOsc.gain.setValueAtTime(0.8, now);
+            gainOsc.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            
+            osc.connect(gainOsc);
+            gainOsc.connect(audioCtx.destination);
+            
+            // 2. Ruído (Explosão/Média/Aguda)
             const bufferSize = audioCtx.sampleRate * 0.5;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-            const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
-            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
-            filter.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            noise.start();
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1000, now);
+            filter.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            
+            const gainNoise = audioCtx.createGain();
+            gainNoise.gain.setValueAtTime(0.6, now);
+            gainNoise.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            noise.connect(filter);
+            filter.connect(gainNoise);
+            gainNoise.connect(audioCtx.destination);
+            
+            osc.start(now);
+            noise.start(now);
+            
+            osc.stop(now + 0.5);
+            noise.stop(now + 0.5);
         }
 
-        function updateDisplay() {
-            const display = document.getElementById('inputDisplay');
-            display.innerHTML = '';
-            currentInput.forEach(num => {
-                const span = document.createElement('div');
-                span.classList.add('input-digit');
-                span.innerText = num;
-                display.appendChild(span);
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen-${screenId}`).classList.add('active');
+        }
+
+        function iniciarJogo() {
+            playerName = document.getElementById('playerName').value.trim() || "Jogador";
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            fetch('/start').then(() => {
+                showScreen('game');
+                verificarStatus();
             });
         }
 
-        function updateStatus() {
+        function enviarJogada(num) {
+            if (!isWaitingInput) return;
+            
+            const btn = document.getElementById(`btn-${num}`);
+            btn.classList.add('active');
+            setTimeout(() => btn.classList.remove('active'), 200);
+
+            fetch(`/move?val=${num}`).then(() => verificarStatus());
+        }
+
+        function proximaRodada() {
+            fetch('/next').then(() => verificarStatus());
+        }
+
+        function voltarParaInicio() {
+            showScreen('start');
+            carregarRanking();
+        }
+
+        function verificarStatus() {
             fetch('/status')
                 .then(r => r.json())
                 .then(data => {
-                    document.getElementById('level').innerText = data.level;
-                    const statusText = document.getElementById('status');
-                    const nextBtn = document.getElementById('nextBtn');
-                    const container = document.getElementById('gameContainer');
+                    currentLevel = data.level;
+                    const statusText = document.getElementById('gameStatus');
+                    const btnProxima = document.getElementById('btnProximaRodada');
+                    const card = document.getElementById('mainCard');
                     
                     if (data.state === 'SHOWING_SEQUENCE') {
                         statusText.innerText = "Observe o NOVO número na placa...";
-                        isWaiting = false;
+                        isWaitingInput = false;
                         isGameOver = false;
-                        nextBtn.style.display = 'none';
-                        currentInput = [];
-                        updateDisplay();
+                        btnProxima.style.display = 'none';
                     } else if (data.state === 'WAITING_INPUT') {
-                        statusText.innerText = "Digite a sequência COMPLETA!";
-                        isWaiting = true;
+                        statusText.innerText = "Sua vez! Digite a sequência COMPLETA.";
+                        isWaitingInput = true;
                         isGameOver = false;
-                        nextBtn.style.display = 'none';
+                        btnProxima.style.display = 'none';
                     } else if (data.state === 'WAITING_CONFIRMATION') {
                         statusText.innerText = "Acertou! Prepare-se para o próximo.";
-                        nextBtn.style.display = 'block';
-                        isWaiting = false;
+                        btnProxima.style.display = 'block';
+                        isWaitingInput = false;
                         isGameOver = false;
-                        currentInput = []; // Limpa ao acertar
-                        updateDisplay();
                     } else if (data.state === 'GAME_OVER') {
                         if (!isGameOver) {
                             isGameOver = true;
-                            document.getElementById('overlay').style.display = 'flex';
-                            container.classList.add('shaking');
-                            createExplosionSound();
-                            setTimeout(() => container.classList.remove('shaking'), 1000);
+                            statusText.innerText = "Game Over!";
+                            card.classList.add('shaking');
+                            tocarSomExplosao();
+                            setTimeout(() => card.classList.remove('shaking'), 500);
+                            
+                            salvarNoRanking(playerName, currentLevel, "Perdeu");
+                            
+                            document.getElementById('finalScore').innerText = currentLevel;
+                            showScreen('gameover');
                         }
                     } else if (data.state === 'IDLE') {
                         statusText.innerText = "Pressione Iniciar";
-                        nextBtn.style.display = 'none';
+                        btnProxima.style.display = 'none';
                     }
                 });
         }
 
-        function startGame() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            currentInput = [];
-            updateDisplay();
-            fetch('/start').then(() => {
-                document.getElementById('startBtn').innerText = "REINICIAR";
-                updateStatus();
+        // REQUISITO 3: Ranking Local
+        function salvarNoRanking(nome, rodada, status) {
+            let ranking = JSON.parse(localStorage.getItem('genius_ranking') || '[]');
+            const novoRegistro = {
+                nome: nome,
+                rodada: rodada,
+                data: new Date().toLocaleString('pt-BR'),
+                status: status
+            };
+            ranking.push(novoRegistro);
+            ranking.sort((a, b) => b.rodada - a.rodada);
+            ranking = ranking.slice(0, 10);
+            localStorage.setItem('genius_ranking', JSON.stringify(ranking));
+        }
+
+        function carregarRanking() {
+            const list = document.getElementById('rankingList');
+            list.innerHTML = '';
+            const ranking = JSON.parse(localStorage.getItem('genius_ranking') || '[]');
+            
+            if (ranking.length === 0) {
+                list.innerHTML = '<li class="ranking-item"><span class="ranking-name">Nenhum jogo registrado</span></li>';
+                return;
+            }
+
+            ranking.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'ranking-item';
+                li.innerHTML = `
+                    <div>
+                        <span class="ranking-name">${item.nome}</span>
+                        <div class="ranking-date">${item.data}</div>
+                    </div>
+                    <span class="ranking-score">${item.rodada} 🏅</span>
+                `;
+                list.appendChild(li);
             });
         }
 
-        function nextRound() {
-            fetch('/next').then(() => updateStatus());
-        }
-
-        function sendMove(num) {
-            if (!isWaiting) return;
-            currentInput.push(num);
-            updateDisplay();
-            fetch(`/move?val=${num}`).then(() => updateStatus());
-        }
-
-        function closeOverlay() {
-            document.getElementById('overlay').style.display = 'none';
-            startGame();
-        }
-
-        setInterval(updateStatus, 500);
+        setInterval(() => {
+            const screenGame = document.getElementById('screen-game');
+            if (screenGame.classList.contains('active')) {
+                verificarStatus();
+            }
+        }, 1000);
     </script>
 </body>
 </html>

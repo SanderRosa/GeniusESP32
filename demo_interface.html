@@ -3,121 +3,288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genius IoT - DEMO MOCK</title>
+    <title>Genius ESP32 - DEMO MOCK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f172a;
-            --glass: rgba(255, 255, 255, 0.1);
-            --primary: #38bdf8;
+            --bg-dark: #090e1a;
+            --bg-card: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
             --danger: #ef4444;
-            --success: #22c55e;
-            --text: #f8fafc;
+            --warning: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            
+            /* Cores dos Botões Genius */
+            --color-1: #ef4444;
+            --color-2: #3b82f6;
+            --color-3: #10b981;
+            --color-4: #f59e0b;
+            --color-5: #8b5cf6;
+            --color-6: #ec4899;
+            --color-7: #06b6d4;
+            --color-8: #f97316;
+            --color-9: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at top left, #1e293b, #0f172a);
-            color: var(--text);
+            background: radial-gradient(circle at center, #1e1b4b 0%, #090e1a 100%);
+            color: var(--text-main);
+            min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
+            padding: 20px;
+            overflow-x: hidden;
         }
 
-        .container {
-            background: var(--glass);
-            backdrop-filter: blur(12px);
-            padding: 2rem;
-            border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
+        .mock-banner {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: #fbbf24;
+            color: #000;
             text-align: center;
-            max-width: 400px;
-            width: 90%;
+            padding: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
-        h1 { font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px; }
-        .status { font-size: 1.2rem; margin-bottom: 1.5rem; color: var(--primary); font-weight: 600; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .shaking {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .game-wrapper {
+            width: 100%;
+            max-width: 450px;
+            perspective: 1000px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        h1 {
+            font-weight: 900;
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.05em;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+            filter: brightness(1.1);
+        }
 
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 1.5rem;
+            gap: 16px;
+            margin: 2rem 0;
         }
 
-        .btn {
+        .genius-btn {
             aspect-ratio: 1;
-            background: rgba(255,255,255,0.05);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            color: var(--text);
-            font-size: 1.5rem;
-            font-weight: bold;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.8);
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
-            user-select: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
-        .btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
-        .btn:active { transform: scale(0.95); background: var(--primary); border-color: var(--primary); }
-        
-        .btn.active { background: var(--primary); box-shadow: 0 0 20px var(--primary); border-color: white; }
-        .btn.error { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
+        #btn-1 { background: rgba(239, 68, 68, 0.2); border: 2px solid rgba(239, 68, 68, 0.4); color: #f87171; }
+        #btn-2 { background: rgba(59, 130, 246, 0.2); border: 2px solid rgba(59, 130, 246, 0.4); color: #60a5fa; }
+        #btn-3 { background: rgba(16, 185, 129, 0.2); border: 2px solid rgba(16, 185, 129, 0.4); color: #34d399; }
+        #btn-4 { background: rgba(245, 158, 11, 0.2); border: 2px solid rgba(245, 158, 11, 0.4); color: #fbbf24; }
+        #btn-5 { background: rgba(139, 92, 246, 0.2); border: 2px solid rgba(139, 92, 246, 0.4); color: #a78bfa; }
+        #btn-6 { background: rgba(236, 72, 153, 0.2); border: 2px solid rgba(236, 72, 153, 0.4); color: #f472b6; }
+        #btn-7 { background: rgba(6, 182, 212, 0.2); border: 2px solid rgba(6, 182, 212, 0.4); color: #22d3ee; }
+        #btn-8 { background: rgba(249, 115, 22, 0.2); border: 2px solid rgba(249, 115, 22, 0.4); color: #fb923c; }
+        #btn-9 { background: rgba(248, 250, 252, 0.2); border: 2px solid rgba(248, 250, 252, 0.4); color: #cbd5e1; }
 
-        .controls { margin-top: 1rem; }
-        .main-btn {
-            background: var(--primary);
-            color: #0f172a;
-            border: none;
-            padding: 12px 32px;
-            border-radius: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            width: 100%;
+        .genius-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .genius-btn:active { transform: scale(0.95); }
+
+        .genius-btn.active {
+            transform: scale(1.1);
+            filter: brightness(1.5);
+            box-shadow: 0 0 30px var(--btn-color, #fff);
+            border-color: white;
+            z-index: 10;
         }
 
-        .main-btn:hover { opacity: 0.9; transform: translateY(-2px); }
-
-        .level-badge {
-            background: rgba(56, 189, 248, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.9rem;
+        .game-status {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--primary);
+            min-height: 3rem;
             margin-bottom: 1rem;
-            display: inline-block;
-        }
-
-        #overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.8);
-            display: none;
-            flex-direction: column;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            backdrop-filter: blur(4px);
         }
 
-        #overlay h2 { color: var(--danger); font-size: 3rem; margin: 0; }
-        
-        .mock-banner {
-            position: fixed;
-            top: 0; width: 100%;
-            background: #fbbf24;
-            color: #000;
-            text-align: center;
-            padding: 5px;
-            font-size: 0.8rem;
-            font-weight: bold;
+        .ranking-container {
+            margin-top: 2rem;
+            text-align: left;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .ranking-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ranking-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.95rem;
+        }
+
+        .ranking-item:last-child { border-bottom: none; }
+        .ranking-name { font-weight: 500; color: var(--text-main); }
+        .ranking-score { font-weight: 700; color: var(--warning); }
+        .ranking-date { color: var(--text-muted); font-size: 0.8rem; }
+
+        .game-over-title {
+            color: var(--danger);
+            font-size: 3rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--warning);
+            margin: 1rem 0;
+        }
+
+        .score-label {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
     </style>
 </head>
@@ -125,32 +292,58 @@
 
     <div class="mock-banner">MODO DEMONSTRAÇÃO (Simulando ESP32)</div>
 
-    <div class="container">
-        <h1>Genius IoT</h1>
-        <div class="level-badge">Nível <span id="level">1</span></div>
-        <div class="status" id="status">Pressione Iniciar</div>
+    <div class="game-wrapper">
+        <div class="card" id="mainCard">
+            
+            <!-- TELA INICIAL -->
+            <div id="screen-start" class="screen active">
+                <h1>Genius ESP32</h1>
+                <p>Teste sua memória nesta versão premium.</p>
+                
+                <div class="input-group">
+                    <label for="playerName">Seu Nome</label>
+                    <input type="text" id="playerName" placeholder="Digite seu nome ou apelido" value="Jogador">
+                </div>
+                
+                <button class="btn-action" onclick="iniciarJogo()">INICIAR JOGO</button>
+                
+                <div class="ranking-container">
+                    <div class="ranking-title">
+                        🏆 Ranking Local
+                    </div>
+                    <ul class="ranking-list" id="rankingList"></ul>
+                </div>
+            </div>
 
-        <div class="grid">
-            <button class="btn" id="btn-1" onclick="sendMove(1)">1</button>
-            <button class="btn" id="btn-2" onclick="sendMove(2)">2</button>
-            <button class="btn" id="btn-3" onclick="sendMove(3)">3</button>
-            <button class="btn" id="btn-4" onclick="sendMove(4)">4</button>
-            <button class="btn" id="btn-5" onclick="sendMove(5)">5</button>
-            <button class="btn" id="btn-6" onclick="sendMove(6)">6</button>
-            <button class="btn" id="btn-7" onclick="sendMove(7)">7</button>
-            <button class="btn" id="btn-8" onclick="sendMove(8)">8</button>
-            <button class="btn" id="btn-9" onclick="sendMove(9)">9</button>
+            <!-- TELA DE JOGO -->
+            <div id="screen-game" class="screen">
+                <h1>Genius ESP32</h1>
+                <div class="game-status" id="gameStatus">Observe a sequência...</div>
+                
+                <div class="grid">
+                    <button class="genius-btn" id="btn-1" style="--btn-color: var(--color-1)" onclick="enviarJogada(1)">1</button>
+                    <button class="genius-btn" id="btn-2" style="--btn-color: var(--color-2)" onclick="enviarJogada(2)">2</button>
+                    <button class="genius-btn" id="btn-3" style="--btn-color: var(--color-3)" onclick="enviarJogada(3)">3</button>
+                    <button class="genius-btn" id="btn-4" style="--btn-color: var(--color-4)" onclick="enviarJogada(4)">4</button>
+                    <button class="genius-btn" id="btn-5" style="--btn-color: var(--color-5)" onclick="enviarJogada(5)">5</button>
+                    <button class="genius-btn" id="btn-6" style="--btn-color: var(--color-6)" onclick="enviarJogada(6)">6</button>
+                    <button class="genius-btn" id="btn-7" style="--btn-color: var(--color-7)" onclick="enviarJogada(7)">7</button>
+                    <button class="genius-btn" id="btn-8" style="--btn-color: var(--color-8)" onclick="enviarJogada(8)">8</button>
+                    <button class="genius-btn" id="btn-9" style="--btn-color: var(--color-9)" onclick="enviarJogada(9)">9</button>
+                </div>
+            </div>
+
+            <!-- TELA DE DERROTA -->
+            <div id="screen-gameover" class="screen">
+                <div class="game-over-title">FIM DE JOGO</div>
+                <div class="score-label">Rodada Alcançada</div>
+                <div class="score-display" id="finalScore">0</div>
+                <p id="gameOverMessage">Você esqueceu a sequência!</p>
+                
+                <button class="btn-action" onclick="voltarParaInicio()">JOGAR NOVAMENTE</button>
+            </div>
+
         </div>
-
-        <div class="controls">
-            <button class="main-btn" id="startBtn" onclick="startGame()">INICIAR JOGO</button>
-        </div>
-    </div>
-
-    <div id="overlay">
-        <h2>GAME OVER</h2>
-        <p>Você errou a sequência!</p>
-        <button class="main-btn" style="width: auto;" onclick="closeOverlay()">TENTAR NOVAMENTE</button>
     </div>
 
     <script>
@@ -159,29 +352,73 @@
         let userStep = 0;
         let state = 'IDLE';
         let level = 1;
-        let isWaiting = false;
+        let isWaitingInput = false;
+        let playerName = "Jogador";
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function updateUI() {
-            document.getElementById('level').innerText = level;
-            const statusText = document.getElementById('status');
+        document.addEventListener("DOMContentLoaded", () => {
+            carregarRanking();
+        });
+
+        function tocarSomExplosao() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
             
-            if (state === 'SHOWING_SEQUENCE') {
-                statusText.innerText = "Observe a sequência...";
-                isWaiting = false;
-            } else if (state === 'WAITING_INPUT') {
-                statusText.innerText = "Sua vez!";
-                isWaiting = true;
-            } else if (state === 'GAME_OVER') {
-                document.getElementById('overlay').style.display = 'flex';
-                statusText.innerText = "Game Over!";
-            } else if (state === 'IDLE') {
-                statusText.innerText = "Pressione Iniciar";
-            }
+            const osc = audioCtx.createOscillator();
+            const gainOsc = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(180, now);
+            osc.frequency.exponentialRampToValueAtTime(10, now + 0.4);
+            gainOsc.gain.setValueAtTime(0.8, now);
+            gainOsc.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc.connect(gainOsc);
+            gainOsc.connect(audioCtx.destination);
+            
+            const bufferSize = audioCtx.sampleRate * 0.5;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(1000, now);
+            filter.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            const gainNoise = audioCtx.createGain();
+            gainNoise.gain.setValueAtTime(0.6, now);
+            gainNoise.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+            
+            noise.connect(filter);
+            filter.connect(gainNoise);
+            gainNoise.connect(audioCtx.destination);
+            
+            osc.start(now);
+            noise.start(now);
+            osc.stop(now + 0.5);
+            noise.stop(now + 0.5);
         }
 
-        async function playSequence() {
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen-${screenId}`).classList.add('active');
+        }
+
+        function iniciarJogo() {
+            playerName = document.getElementById('playerName').value.trim() || "Jogador";
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            gameSequence = [Math.floor(Math.random() * 9) + 1];
+            level = 1;
+            userStep = 0;
+            showScreen('game');
+            tocarSequencia();
+        }
+
+        async function tocarSequencia() {
             state = 'SHOWING_SEQUENCE';
-            updateUI();
+            isWaitingInput = false;
+            document.getElementById('gameStatus').innerText = "Observe a sequência...";
             
             for (let num of gameSequence) {
                 await new Promise(r => setTimeout(r, 600));
@@ -192,40 +429,80 @@
             }
             
             state = 'WAITING_INPUT';
-            userStep = 0;
-            updateUI();
+            isWaitingInput = true;
+            document.getElementById('gameStatus').innerText = "Sua vez! Digite a sequência COMPLETA.";
         }
 
-        function startGame() {
-            gameSequence = [Math.floor(Math.random() * 9) + 1];
-            level = 1;
-            userStep = 0;
-            document.getElementById('startBtn').innerText = "REINICIAR";
-            playSequence();
-        }
-
-        function sendMove(num) {
-            if (!isWaiting) return;
+        function enviarJogada(num) {
+            if (!isWaitingInput) return;
             
+            const btn = document.getElementById(`btn-${num}`);
+            btn.classList.add('active');
+            setTimeout(() => btn.classList.remove('active'), 200);
+
             if (num === gameSequence[userStep]) {
                 userStep++;
                 if (userStep >= gameSequence.length) {
                     level++;
                     gameSequence.push(Math.floor(Math.random() * 9) + 1);
-                    playSequence();
+                    tocarSequencia();
                 }
             } else {
                 state = 'GAME_OVER';
-                updateUI();
+                isWaitingInput = false;
+                const card = document.getElementById('mainCard');
+                card.classList.add('shaking');
+                tocarSomExplosao();
+                setTimeout(() => card.classList.remove('shaking'), 500);
+                
+                salvarNoRanking(playerName, level, "Perdeu");
+                document.getElementById('finalScore').innerText = level;
+                showScreen('gameover');
             }
         }
 
-        function closeOverlay() {
-            document.getElementById('overlay').style.display = 'none';
-            startGame();
+        function voltarParaInicio() {
+            showScreen('start');
+            carregarRanking();
         }
 
-        updateUI();
+        function salvarNoRanking(nome, rodada, status) {
+            let ranking = JSON.parse(localStorage.getItem('genius_ranking') || '[]');
+            const novoRegistro = {
+                nome: nome,
+                rodada: rodada,
+                data: new Date().toLocaleString('pt-BR'),
+                status: status
+            };
+            ranking.push(novoRegistro);
+            ranking.sort((a, b) => b.rodada - a.rodada);
+            ranking = ranking.slice(0, 10);
+            localStorage.setItem('genius_ranking', JSON.stringify(ranking));
+        }
+
+        function carregarRanking() {
+            const list = document.getElementById('rankingList');
+            list.innerHTML = '';
+            const ranking = JSON.parse(localStorage.getItem('genius_ranking') || '[]');
+            
+            if (ranking.length === 0) {
+                list.innerHTML = '<li class="ranking-item"><span class="ranking-name">Nenhum jogo registrado</span></li>';
+                return;
+            }
+
+            ranking.forEach(item => {
+                const li = document.createElement('li');
+                li.className = 'ranking-item';
+                li.innerHTML = `
+                    <div>
+                        <span class="ranking-name">${item.nome}</span>
+                        <div class="ranking-date">${item.data}</div>
+                    </div>
+                    <span class="ranking-score">${item.rodada} 🏅</span>
+                `;
+                list.appendChild(li);
+            });
+        }
     </script>
 </body>
 </html>

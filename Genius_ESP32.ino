@@ -11,7 +11,7 @@
 
 // 🔥 SEU WIFI
 const char* ssid = "sander";
-const char* password = "sorcer666";
+const char* password = "uergs262";
 
 // LED
 const uint8_t LED_PIN = 2;
