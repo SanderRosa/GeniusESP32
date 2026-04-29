@@ -94,6 +94,12 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             letter-spacing: -0.05em;
         }
 
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
         p {
             color: var(--text-muted);
             margin-bottom: 1.5rem;
@@ -167,38 +173,8 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             filter: brightness(1.1);
         }
 
-        /* Display de Dígitos Digitados */
-        .input-display {
-            background: rgba(15, 23, 42, 0.6);
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            min-height: 3.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            border: 1px dashed var(--glass-border);
-        }
-
-        .input-digit {
-            background: linear-gradient(135deg, var(--primary), #4f46e5);
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.2rem;
-            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .btn-action:active {
+            transform: translateY(0);
         }
 
         /* Grid do Jogo */
@@ -206,7 +182,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 16px;
-            margin: 1.5rem 0;
+            margin: 2rem 0;
         }
 
         .genius-btn {
@@ -236,8 +212,14 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         #btn-8 { background: rgba(249, 115, 22, 0.2); border: 2px solid rgba(249, 115, 22, 0.4); color: #fb923c; }
         #btn-9 { background: rgba(248, 250, 252, 0.2); border: 2px solid rgba(248, 250, 252, 0.4); color: #cbd5e1; }
 
-        .genius-btn:hover { transform: scale(1.05); filter: brightness(1.2); }
-        .genius-btn:active { transform: scale(0.95); }
+        .genius-btn:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+
+        .genius-btn:active {
+            transform: scale(0.95);
+        }
 
         .genius-btn.active {
             transform: scale(1.1);
@@ -252,8 +234,8 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             font-size: 1.2rem;
             font-weight: 500;
             color: var(--primary);
-            min-height: 2.5rem;
-            margin-bottom: 0.5rem;
+            min-height: 3rem;
+            margin-bottom: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -293,10 +275,24 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             font-size: 0.95rem;
         }
 
-        .ranking-item:last-child { border-bottom: none; }
-        .ranking-name { font-weight: 500; color: var(--text-main); }
-        .ranking-score { font-weight: 700; color: var(--warning); }
-        .ranking-date { color: var(--text-muted); font-size: 0.8rem; }
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-name {
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        .ranking-score {
+            font-weight: 700;
+            color: var(--warning);
+        }
+
+        .ranking-date {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
 
         /* Tela de Derrota */
         .game-over-title {
@@ -342,7 +338,9 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
                     <div class="ranking-title">
                         🏆 Ranking Local
                     </div>
-                    <ul class="ranking-list" id="rankingList"></ul>
+                    <ul class="ranking-list" id="rankingList">
+                        <!-- Itens do ranking serão inseridos aqui -->
+                    </ul>
                 </div>
             </div>
 
@@ -350,9 +348,6 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             <div id="screen-game" class="screen">
                 <h1>Genius ESP32</h1>
                 <div class="game-status" id="gameStatus">Observe o NOVO número na placa...</div>
-                
-                <!-- Display de Dígitos Digitados -->
-                <div class="input-display" id="inputDisplay"></div>
                 
                 <div class="grid">
                     <button class="genius-btn" id="btn-1" style="--btn-color: var(--color-1)" onclick="enviarJogada(1)">1</button>
@@ -387,38 +382,48 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         let isGameOver = false;
         let currentLevel = 0;
         let playerName = "Jogador";
-        let currentInput = []; // Guarda os dígitos digitados na rodada atual
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         document.addEventListener("DOMContentLoaded", () => {
             carregarRanking();
         });
 
+        // REQUISITO 1: Som de derrota (explosão forte)
         function tocarSomExplosao() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
+            
             const now = audioCtx.currentTime;
             
+            // 1. Sintetizador de impacto (Grave)
             const osc = audioCtx.createOscillator();
             const gainOsc = audioCtx.createGain();
+            
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(180, now);
             osc.frequency.exponentialRampToValueAtTime(10, now + 0.4);
+            
             gainOsc.gain.setValueAtTime(0.8, now);
             gainOsc.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            
             osc.connect(gainOsc);
             gainOsc.connect(audioCtx.destination);
             
+            // 2. Ruído (Explosão/Média/Aguda)
             const bufferSize = audioCtx.sampleRate * 0.5;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
             
             const noise = audioCtx.createBufferSource();
             noise.buffer = buffer;
+            
             const filter = audioCtx.createBiquadFilter();
             filter.type = 'lowpass';
             filter.frequency.setValueAtTime(1000, now);
             filter.frequency.exponentialRampToValueAtTime(50, now + 0.5);
+            
             const gainNoise = audioCtx.createGain();
             gainNoise.gain.setValueAtTime(0.6, now);
             gainNoise.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
@@ -429,6 +434,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             
             osc.start(now);
             noise.start(now);
+            
             osc.stop(now + 0.5);
             noise.stop(now + 0.5);
         }
@@ -438,23 +444,9 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
             document.getElementById(`screen-${screenId}`).classList.add('active');
         }
 
-        function atualizarDisplayInput() {
-            const display = document.getElementById('inputDisplay');
-            display.innerHTML = '';
-            currentInput.forEach(num => {
-                const div = document.createElement('div');
-                div.className = 'input-digit';
-                div.innerText = num;
-                display.appendChild(div);
-            });
-        }
-
         function iniciarJogo() {
             playerName = document.getElementById('playerName').value.trim() || "Jogador";
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            currentInput = [];
-            atualizarDisplayInput();
             
             fetch('/start').then(() => {
                 showScreen('game');
@@ -465,10 +457,6 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         function enviarJogada(num) {
             if (!isWaitingInput) return;
             
-            // Adiciona ao histórico visual
-            currentInput.push(num);
-            atualizarDisplayInput();
-            
             const btn = document.getElementById(`btn-${num}`);
             btn.classList.add('active');
             setTimeout(() => btn.classList.remove('active'), 200);
@@ -477,8 +465,6 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
         }
 
         function proximaRodada() {
-            currentInput = [];
-            atualizarDisplayInput();
             fetch('/next').then(() => verificarStatus());
         }
 
@@ -501,11 +487,6 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
                         isWaitingInput = false;
                         isGameOver = false;
                         btnProxima.style.display = 'none';
-                        // Limpa o display para a nova rodada de digitação
-                        if (currentInput.length > 0) {
-                            currentInput = [];
-                            atualizarDisplayInput();
-                        }
                     } else if (data.state === 'WAITING_INPUT') {
                         statusText.innerText = "Sua vez! Digite a sequência COMPLETA.";
                         isWaitingInput = true;
@@ -536,6 +517,7 @@ const char INDEX_HTML[] PROGMEM = R"rawliteral(
                 });
         }
 
+        // REQUISITO 3: Ranking Local
         function salvarNoRanking(nome, rodada, status) {
             let ranking = JSON.parse(localStorage.getItem('genius_ranking') || '[]');
             const novoRegistro = {
