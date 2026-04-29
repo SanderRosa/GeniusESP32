@@ -19,7 +19,7 @@ void LEDController::blink(int count, unsigned long speed) {
 
 void LEDController::indicateError() {
     isErrorMode = true;
-    blink(10, 50); // Fast flashes for error
+        blink(30, 80); // Sinal de alerta mais longo e marcante para erro
 }
 
 void LEDController::indicateSuccess() {
