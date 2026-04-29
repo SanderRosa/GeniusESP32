@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genius IoT - DEMO MOCK</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --glass: rgba(255, 255, 255, 0.1);
+            --primary: #38bdf8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 { font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -1px; }
+        .status { font-size: 1.2rem; margin-bottom: 1.5rem; color: var(--primary); font-weight: 600; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            color: var(--text);
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.05); }
+        .btn:active { transform: scale(0.95); background: var(--primary); border-color: var(--primary); }
+        
+        .btn.active { background: var(--primary); box-shadow: 0 0 20px var(--primary); border-color: white; }
+        .btn.error { background: var(--danger); box-shadow: 0 0 20px var(--danger); }
+
+        .controls { margin-top: 1rem; }
+        .main-btn {
+            background: var(--primary);
+            color: #0f172a;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        .main-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .level-badge {
+            background: rgba(56, 189, 248, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(4px);
+        }
+
+        #overlay h2 { color: var(--danger); font-size: 3rem; margin: 0; }
+        
+        .mock-banner {
+            position: fixed;
+            top: 0; width: 100%;
+            background: #fbbf24;
+            color: #000;
+            text-align: center;
+            padding: 5px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mock-banner">MODO DEMONSTRAÇÃO (Simulando ESP32)</div>
+
+    <div class="container">
+        <h1>Genius IoT</h1>
+        <div class="level-badge">Nível <span id="level">1</span></div>
+        <div class="status" id="status">Pressione Iniciar</div>
+
+        <div class="grid">
+            <button class="btn" id="btn-1" onclick="sendMove(1)">1</button>
+            <button class="btn" id="btn-2" onclick="sendMove(2)">2</button>
+            <button class="btn" id="btn-3" onclick="sendMove(3)">3</button>
+            <button class="btn" id="btn-4" onclick="sendMove(4)">4</button>
+            <button class="btn" id="btn-5" onclick="sendMove(5)">5</button>
+            <button class="btn" id="btn-6" onclick="sendMove(6)">6</button>
+            <button class="btn" id="btn-7" onclick="sendMove(7)">7</button>
+            <button class="btn" id="btn-8" onclick="sendMove(8)">8</button>
+            <button class="btn" id="btn-9" onclick="sendMove(9)">9</button>
+        </div>
+
+        <div class="controls">
+            <button class="main-btn" id="startBtn" onclick="startGame()">INICIAR JOGO</button>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <h2>GAME OVER</h2>
+        <p>Você errou a sequência!</p>
+        <button class="main-btn" style="width: auto;" onclick="closeOverlay()">TENTAR NOVAMENTE</button>
+    </div>
+
+    <script>
+        // MOCK STATE
+        let gameSequence = [];
+        let userStep = 0;
+        let state = 'IDLE';
+        let level = 1;
+        let isWaiting = false;
+
+        function updateUI() {
+            document.getElementById('level').innerText = level;
+            const statusText = document.getElementById('status');
+            
+            if (state === 'SHOWING_SEQUENCE') {
+                statusText.innerText = "Observe a sequência...";
+                isWaiting = false;
+            } else if (state === 'WAITING_INPUT') {
+                statusText.innerText = "Sua vez!";
+                isWaiting = true;
+            } else if (state === 'GAME_OVER') {
+                document.getElementById('overlay').style.display = 'flex';
+                statusText.innerText = "Game Over!";
+            } else if (state === 'IDLE') {
+                statusText.innerText = "Pressione Iniciar";
+            }
+        }
+
+        async function playSequence() {
+            state = 'SHOWING_SEQUENCE';
+            updateUI();
+            
+            for (let num of gameSequence) {
+                await new Promise(r => setTimeout(r, 600));
+                const btn = document.getElementById(`btn-${num}`);
+                btn.classList.add('active');
+                await new Promise(r => setTimeout(r, 400));
+                btn.classList.remove('active');
+            }
+            
+            state = 'WAITING_INPUT';
+            userStep = 0;
+            updateUI();
+        }
+
+        function startGame() {
+            gameSequence = [Math.floor(Math.random() * 9) + 1];
+            level = 1;
+            userStep = 0;
+            document.getElementById('startBtn').innerText = "REINICIAR";
+            playSequence();
+        }
+
+        function sendMove(num) {
+            if (!isWaiting) return;
+            
+            if (num === gameSequence[userStep]) {
+                userStep++;
+                if (userStep >= gameSequence.length) {
+                    level++;
+                    gameSequence.push(Math.floor(Math.random() * 9) + 1);
+                    playSequence();
+                }
+            } else {
+                state = 'GAME_OVER';
+                updateUI();
+            }
+        }
+
+        function closeOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            startGame();
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
